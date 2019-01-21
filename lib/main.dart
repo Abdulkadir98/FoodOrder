@@ -125,7 +125,16 @@ class _SampleAppPageState extends State<SampleAppPage> {
                 Icons.indeterminate_check_box,
                 color: Colors.black,
               ),
-              onPressed: () {},
+              onPressed: () {
+                Firestore.instance.runTransaction((transaction) async {
+                  DocumentSnapshot freshSnap =
+                                  await transaction.get(snapshot.reference);
+                  if(freshSnap['quantity'] != 0)
+                  await transaction.update(freshSnap.reference, {
+                      'quantity' : freshSnap['quantity'] - 1
+                  });
+                });
+              },
             ),
             Text(snapshot["quantity"].toString()),
             IconButton(
@@ -133,7 +142,15 @@ class _SampleAppPageState extends State<SampleAppPage> {
                 Icons.add,
                 color: Colors.black,
               ),
-              onPressed: () {},
+              onPressed: () {
+                Firestore.instance.runTransaction((transaction) async {
+                    DocumentSnapshot freshSnap =
+                        await transaction.get(snapshot.reference);
+                    await transaction.update(freshSnap.reference, {
+                      "quantity": freshSnap['quantity'] + 1
+                    });
+                });
+              },
             ),
           ],
         ),
@@ -223,27 +240,27 @@ class DetailPage extends StatelessWidget {
             Expanded(
               child: Text(
                 document["desc"],
-                style: TextStyle(fontSize: 18.0),
+                style: TextStyle(fontSize: 18.0, ),
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Expanded(
                   child: RaisedButton(
-                    shape: new RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(10.0)),
                     child: Text("remove"),
-                    textColor: Colors.orange,
+                    padding: const EdgeInsets.all(12.0),
+                    textColor: Colors.white,
+                    color: Colors.red,
                     onPressed: (){},
                   ),
                 ),
                 Expanded(
                   child: RaisedButton(
-                    shape: new RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(10.0)),
+                    padding: const EdgeInsets.all(12.0),
                     child: Text("add"),
-                    textColor: Colors.orange,
+                    textColor: Colors.white,
+                    color: Colors.blue,
                     onPressed: (){},
                   ),
                 ),
