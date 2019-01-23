@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:order_food/CartItemListTile.dart';
 
-
 Future<Food> fetchFood() async {
   final response =
       await http.get('https://jsonplaceholder.typicode.com/posts/1');
@@ -99,17 +98,15 @@ class _SampleAppPageState extends State<SampleAppPage> {
 
   void _pushItemsinCart() {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => CartPage()));
+        context, MaterialPageRoute(builder: (context) => CartPage()));
   }
 
   void _showSnackbar(BuildContext context, String message) {
-   final snackBar = SnackBar(
-     content: Text(message),
-   );
+    final snackBar = SnackBar(
+      content: Text(message),
+    );
 
-   Scaffold.of(context).showSnackBar(snackBar);
+    Scaffold.of(context).showSnackBar(snackBar);
   }
 
   @override
@@ -145,11 +142,10 @@ class _SampleAppPageState extends State<SampleAppPage> {
               onPressed: () {
                 Firestore.instance.runTransaction((transaction) async {
                   DocumentSnapshot freshSnap =
-                                  await transaction.get(snapshot.reference);
-                  if(freshSnap['quantity'] != 0)
-                  await transaction.update(freshSnap.reference, {
-                      'quantity' : freshSnap['quantity'] - 1
-                  });
+                      await transaction.get(snapshot.reference);
+                  if (freshSnap['quantity'] != 0)
+                    await transaction.update(freshSnap.reference,
+                        {'quantity': freshSnap['quantity'] - 1});
                 });
 
                 _showSnackbar(context, "Removed from cart!");
@@ -163,13 +159,12 @@ class _SampleAppPageState extends State<SampleAppPage> {
               ),
               onPressed: () {
                 Firestore.instance.runTransaction((transaction) async {
-                    DocumentSnapshot freshSnap =
-                        await transaction.get(snapshot.reference);
-                    await transaction.update(freshSnap.reference, {
-                      "quantity": freshSnap['quantity'] + 1
-                    });
+                  DocumentSnapshot freshSnap =
+                      await transaction.get(snapshot.reference);
+                  await transaction.update(freshSnap.reference,
+                      {"quantity": freshSnap['quantity'] + 1});
 
-                    _showSnackbar(context, "Added to cart!");
+                  _showSnackbar(context, "Added to cart!");
                 });
               },
             ),
@@ -215,11 +210,12 @@ class _SampleAppPageState extends State<SampleAppPage> {
       appBar: AppBar(
         title: Text("Order Food App"),
         actions: <Widget>[
-          new IconButton(icon: const Icon(Icons.shopping_cart),
+          new IconButton(
+              icon: const Icon(Icons.shopping_cart),
               onPressed: _pushItemsinCart),
         ],
       ),
-      body: Builder(builder: (BuildContext context){
+      body: Builder(builder: (BuildContext context) {
         return _buildBody(context);
       }),
     );
@@ -238,6 +234,14 @@ class _SampleAppPageState extends State<SampleAppPage> {
 class DetailPage extends StatelessWidget {
   final DocumentSnapshot document;
   DetailPage({Key key, this.document}) : super(key: key);
+
+  void _showSnackbar(BuildContext context, String message) {
+    final snackBar = SnackBar(
+      content: Text(message),
+    );
+
+    Scaffold.of(context).showSnackBar(snackBar);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -262,39 +266,61 @@ class DetailPage extends StatelessWidget {
             ),
           ];
         },
-        body: Column(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                document["desc"],
-                style: TextStyle(fontSize: 18.0, ),
+        body: Builder(builder: (BuildContext context){
+          return Column(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  document["desc"],
+                  style: TextStyle(
+                    fontSize: 18.0,
+                  ),
+                ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                  child: RaisedButton(
-                    child: Text("remove"),
-                    padding: const EdgeInsets.all(12.0),
-                    textColor: Colors.white,
-                    color: Colors.red,
-                    onPressed: (){},
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Expanded(
+                    child: RaisedButton(
+                      child: Text("remove"),
+                      padding: const EdgeInsets.all(12.0),
+                      textColor: Colors.white,
+                      color: Colors.red,
+                      onPressed: () {
+                        Firestore.instance.runTransaction((transaction) async {
+                          DocumentSnapshot freshSnap =
+                          await transaction.get(document.reference);
+                          if (freshSnap['quantity'] != 0)
+                            await transaction.update(freshSnap.reference,
+                                {"quantity": freshSnap['quantity'] - 1});
+                        });
+
+                        _showSnackbar(context, "Removed from cart!");
+                      },
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: RaisedButton(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text("add"),
-                    textColor: Colors.white,
-                    color: Colors.blue,
-                    onPressed: (){},
+                  Expanded(
+                    child: RaisedButton(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text("add"),
+                        textColor: Colors.white,
+                        color: Colors.blue,
+                        onPressed: () {
+                          Firestore.instance.runTransaction((transaction) async {
+                            DocumentSnapshot freshSnap =
+                            await transaction.get(document.reference);
+                            await transaction.update(freshSnap.reference,
+                                {"quantity": freshSnap['quantity'] + 1});
+
+                            _showSnackbar(context, "Added to cart!");
+                          });
+                        }),
                   ),
-                ),
-              ],
-            )
-          ],
-        ),
+                ],
+              )
+            ],
+          );
+        }),
       ),
     );
   }
@@ -302,7 +328,6 @@ class DetailPage extends StatelessWidget {
 
 // Code for Cart screen
 class CartPage extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -314,24 +339,23 @@ class CartPage extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context) {
-
     return StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection('food')
-          .where('quantity', isGreaterThan: 0).snapshots(),
+      stream: Firestore.instance
+          .collection('food')
+          .where('quantity', isGreaterThan: 0)
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return LinearProgressIndicator();
 
         return ListView.builder(
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: snapshot.data.documents.length,
-          itemBuilder: (context, int index) {
-            return new InkWell(
-                child: new CartItemListTile(snapshot.data.documents[index]));
-          }
-        );
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: snapshot.data.documents.length,
+            itemBuilder: (context, int index) {
+              return new InkWell(
+                  child: new CartItemListTile(snapshot.data.documents[index]));
+            });
       },
     );
-
   }
 }

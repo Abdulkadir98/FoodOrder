@@ -112,8 +112,8 @@ class FoodItemListTileState extends State<CartItemListTile> {
                             child: new Text("24 mins",
                                 style: new TextStyle(fontSize: 13.0))),
                         new Expanded(
-                            flex: 1,
-                            child: new Text("₹ ${snapshot["price"]}",
+                            flex: 2,
+                            child: new Text("₹ ${snapshot["price"] * snapshot["quantity"]}",
                                 maxLines: 1,
                                 style: new TextStyle(fontSize: 13.0)))
                       ],
