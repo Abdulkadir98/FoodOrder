@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:order_food/CartItemListTile.dart';
+
 
 Future<Food> fetchFood() async {
   final response =
@@ -95,9 +97,24 @@ class _SampleAppPageState extends State<SampleAppPage> {
     //loadData();
   }
 
+  void _pushItemsinCart() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => CartPage()));
+  }
+
+  void _showSnackbar(BuildContext context, String message) {
+   final snackBar = SnackBar(
+     content: Text(message),
+   );
+
+   Scaffold.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget getRow(DocumentSnapshot snapshot) {
+    Widget getRow(DocumentSnapshot snapshot, BuildContext context) {
       return new ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
         leading: Container(
@@ -134,6 +151,8 @@ class _SampleAppPageState extends State<SampleAppPage> {
                       'quantity' : freshSnap['quantity'] - 1
                   });
                 });
+
+                _showSnackbar(context, "Removed from cart!");
               },
             ),
             Text(snapshot["quantity"].toString()),
@@ -149,6 +168,8 @@ class _SampleAppPageState extends State<SampleAppPage> {
                     await transaction.update(freshSnap.reference, {
                       "quantity": freshSnap['quantity'] + 1
                     });
+
+                    _showSnackbar(context, "Added to cart!");
                 });
               },
             ),
@@ -169,7 +190,7 @@ class _SampleAppPageState extends State<SampleAppPage> {
           elevation: 8.0,
           margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
           child: Container(
-            child: getRow(snapshot),
+            child: getRow(snapshot, context),
           ));
     }
 
@@ -192,9 +213,15 @@ class _SampleAppPageState extends State<SampleAppPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Sample App"),
+        title: Text("Order Food App"),
+        actions: <Widget>[
+          new IconButton(icon: const Icon(Icons.shopping_cart),
+              onPressed: _pushItemsinCart),
+        ],
       ),
-      body: _buildBody(context),
+      body: Builder(builder: (BuildContext context){
+        return _buildBody(context);
+      }),
     );
   }
 
@@ -270,5 +297,41 @@ class DetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// Code for Cart screen
+class CartPage extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Order Food App"),
+      ),
+      body: _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: Firestore.instance.collection('food')
+          .where('quantity', isGreaterThan: 0).snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return LinearProgressIndicator();
+
+        return ListView.builder(
+          scrollDirection: Axis.vertical,
+          shrinkWrap: true,
+          itemCount: snapshot.data.documents.length,
+          itemBuilder: (context, int index) {
+            return new InkWell(
+                child: new CartItemListTile(snapshot.data.documents[index]));
+          }
+        );
+      },
+    );
+
   }
 }
