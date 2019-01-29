@@ -282,7 +282,7 @@ class DetailPage extends StatelessWidget {
                 children: <Widget>[
                   Expanded(
                     child: RaisedButton(
-                      child: Text("remove"),
+                      child: Text("Remove"),
                       padding: const EdgeInsets.all(12.0),
                       textColor: Colors.white,
                       color: Colors.red,
@@ -302,7 +302,7 @@ class DetailPage extends StatelessWidget {
                   Expanded(
                     child: RaisedButton(
                         padding: const EdgeInsets.all(12.0),
-                        child: Text("add"),
+                        child: Text("Add"),
                         textColor: Colors.white,
                         color: Colors.blue,
                         onPressed: () {
@@ -347,14 +347,22 @@ class CartPage extends StatelessWidget {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return LinearProgressIndicator();
 
-        return ListView.builder(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: snapshot.data.documents.length,
-            itemBuilder: (context, int index) {
-              return new InkWell(
-                  child: new CartItemListTile(snapshot.data.documents[index]));
-            });
+        else if(snapshot.data.documents.length == 0) {
+          return Center(
+            child: Text("Your cart is empty, add some items."),
+          );
+        }
+
+        else {
+          return ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: snapshot.data.documents.length,
+              itemBuilder: (context, int index) {
+                return new InkWell(
+                    child: new CartItemListTile(snapshot.data.documents[index]));
+              });
+        }
       },
     );
   }
